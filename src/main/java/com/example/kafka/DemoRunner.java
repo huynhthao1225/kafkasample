@@ -28,9 +28,6 @@ public class DemoRunner implements CommandLineRunner {
         KafkaBase kafkabase = null;
 
         switch (runnerEnum) {
-            case CONSUMER:
-                kafkabase = applicationContext.getBean(KafkaConsumer.class);
-                break;
             case PRODUCER:
                 kafkabase = applicationContext.getBean(KafkaProducer.class);
                 break;
@@ -46,6 +43,8 @@ public class DemoRunner implements CommandLineRunner {
             logger.error("This application can be run as Kafka CONSUMER or PRODUCER");
 
         }
+
+
 
     }
 }

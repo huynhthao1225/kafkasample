@@ -4,16 +4,18 @@ import com.example.kafka.KafkaBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
 @Lazy
-public class KafkaConsumer implements KafkaBase {
+public class KafkaConsumer {
 
     private Logger logger = LoggerFactory.getLogger(KafkaConsumer.class);
 
-    @Override
-    public void start() {
-        logger.info("Starting ...");
+
+    @KafkaListener(topics = "sampleTopic", groupId = "group-id")
+    public void listen(String message) {
+        logger.info("Received Message in group - group-id: " + message);
     }
 }
