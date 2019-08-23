@@ -2,7 +2,6 @@ package com.example.kafka.producer;
 
 import com.example.kafka.KafkaBase;
 import com.example.kafka.producer.model.userInfo;
-import org.apache.avro.Schema;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
@@ -16,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Random;
 
 @Service
 @Lazy
@@ -30,18 +30,44 @@ public class KafkaProducer implements KafkaBase {
     public void start() {
 
         logger.info("Start sending...");
-        byte[] data = createUserInfo();
+        byte[] data = createMessage();
         String message = new String(data);
         kafkaTemplate.send(topic, message);
 
 
     }
 
-    private byte[] createUserInfo() {
+    private byte[] createMessage() {
 
+
+        userInfo user = createUserInfo();
+        userInfo user1 = createUserInfo();
+        DatumWriter<userInfo> userDatumWriter = new SpecificDatumWriter<userInfo>(userInfo.class);
+        userDatumWriter.setSchema(userInfo.getClassSchema());
+
+        byte[] data = new byte[0];
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        Encoder jsonEncoder;
+        try {
+            jsonEncoder = EncoderFactory.get().jsonEncoder(
+                    userInfo.getClassSchema(), stream);
+            userDatumWriter.write(user, jsonEncoder);
+            userDatumWriter.write(user1, jsonEncoder);
+            jsonEncoder.flush();
+            data = stream.toByteArray();
+        } catch (IOException e) {
+            logger.error("Serialization error: {}" , e.getMessage());
+        }
+        return data;
+    }
+
+    private userInfo createUserInfo() {
+
+        Random r = new Random();
+        int age = r.nextInt((100 - 1) + 1) + 1;
 
         userInfo user = new userInfo();
-        user.setAge(56);
+        user.setAge(age);
         user.setCity("Columbus");
         user.setCountry("USA");
         user.setHousenum("7758");
@@ -50,21 +76,8 @@ public class KafkaProducer implements KafkaBase {
         user.setStreet("7758 Kingman place");
         user.setUsername("huynh");
         user.setZip("43035");
-        DatumWriter<userInfo> userDatumWriter = new SpecificDatumWriter<userInfo>(userInfo.class);
-        userDatumWriter.setSchema(user.getSchema());
 
-        byte[] data = new byte[0];
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        Encoder jsonEncoder = null;
-        try {
-            jsonEncoder = EncoderFactory.get().jsonEncoder(
-                    user.getSchema(), stream);
-            userDatumWriter.write(user, jsonEncoder);
-            jsonEncoder.flush();
-            data = stream.toByteArray();
-        } catch (IOException e) {
-            logger.error("Serialization error:" + e.getMessage());
-        }
-        return data;
+        return user;
     }
+
 }
